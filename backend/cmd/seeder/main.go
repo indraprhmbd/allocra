@@ -76,7 +76,7 @@ func main() {
 	}
 
 	// 2. Create Valid Bookings (Spread out)
-	fmt.Println("\n📅 Generating valid allocations...")
+	fmt.Println("\n Generating valid allocations...")
 	baseTime := time.Now().Truncate(time.Hour).Add(1 * time.Hour) // Start from next hour
 
 	for i := 0; i < 15; i++ {
@@ -107,7 +107,7 @@ func main() {
 		collisionEnd := collisionStart.Add(4 * time.Hour)
 
 		// First, a successful one
-		fmt.Printf("📝 Establishing baseline for %s at %v\n", targetRoom.Name, collisionStart.Format("15:04"))
+		fmt.Printf(" Establishing baseline for %s at %v\n", targetRoom.Name, collisionStart.Format("15:04"))
 		baselineRes, _ := post("/bookings", map[string]interface{}{
 			"room_id":    targetRoom.ID,
 			"user_id":    1,
@@ -119,7 +119,7 @@ func main() {
 		json.Unmarshal(baselineRes, &baseline)
 
 		// Approve the baseline to trigger real conflicts
-		fmt.Printf("🔒 Approving baseline (ID: %d)...\n", baseline.ID)
+		fmt.Printf("Approving baseline (ID: %d)...\n", baseline.ID)
 		_, err := patch(fmt.Sprintf("/bookings/%d/approve", baseline.ID), nil)
 		if err != nil {
 			fmt.Printf("[X] Failed to approve baseline: %v\n", err)
@@ -137,7 +137,7 @@ func main() {
 		}
 
 		for _, o := range overlaps {
-			fmt.Printf("💥 Attempting conflict [%s]: ", o.name)
+			fmt.Printf("Attempting conflict [%s]: ", o.name)
 			payload := map[string]interface{}{
 				"room_id":    targetRoom.ID,
 				"user_id":    1,
@@ -153,7 +153,7 @@ func main() {
 		}
 	}
 
-	fmt.Println("\n🏁 Seeding complete. Refresh Allocra Dashboard to see results.")
+	fmt.Println("\nSeeding complete. Refresh Allocra Dashboard to see results.")
 }
 
 func post(path string, data interface{}) ([]byte, error) {
