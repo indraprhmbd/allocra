@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: allocra
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d allocra"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - allocra-net
+
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: password
+      DB_NAME: allocra
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - allocra-net
+
+networks:
+  allocra-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
