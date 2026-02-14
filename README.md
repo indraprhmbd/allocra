@@ -64,11 +64,31 @@ Running the Application:
 - `GET /api/system/stats` - Fetch real-time engine load (CPU, Memory simulation)
 - `GET /api/reports/monthly-usage` - Retrieve monthly utilization metrics
 
-## Tech Stack
+## Tech Stack / Tumpukan Teknologi
 
-- **Backend:** Go 1.21, Fiber v2, SQL-first repository layer.
-- **Frontend:** Vue 3 (Composition API), Vite, Tabler Icons, Vanilla CSS Design System.
-- **Database:** PostgreSQL 16 with B-Tree indexing on temporal ranges.
+### Backend
+
+- **Framework:** [Go Fiber v2](https://gofiber.io/) - High-performance, Express-inspired web framework for Go.
+- **Runtime:** Go 1.21+
+- **Database Driver:** `lib/pq` (Pure Go Postgres driver).
+- **Configuration:** `godotenv` for environment-based configuration.
+- **Security:** Standard library `crypto` for password hashing and deterministic UUID generation.
+
+### Frontend
+
+- **Framework:** [Vue 3](https://vuejs.org/) (Composition API) with Script Setup.
+- **Build Tool:** [Vite 7](https://vitejs.dev/) - Next generation frontend tooling.
+- **Language:** TypeScript for type-safe components.
+- **State Management:** [Pinia](https://pinia.vuejs.org/) for reactive global state tracking.
+- **Styling:** Tailwind CSS 4.0 with customized glassmorphism theme.
+- **Icons:** [Tabler Icons](https://tabler.io/icons) for consistent UI iconography.
+- **HTTP Client:** Axios with interceptors for global error handling.
+
+### Infrastructure
+
+- **Containerization:** Docker & Docker Compose for idempotent environments.
+- **Proxy/Web Server:** Nginx (configured as reverse proxy for fallback SPA routing).
+- **API Gateway:** Centralized handling of `/api` routing via Nginx load balancer simulation.
 
 ## Deterministic Safety / Keamanan Deterministik
 
