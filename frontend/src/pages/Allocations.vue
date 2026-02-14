@@ -110,8 +110,8 @@ const isExpanded = (id: number) => expandedRows.value.includes(id);
           <StatusBadge
             :status="value"
             :variant="
-              value === 'allocated'
-                ? 'info'
+              value === 'approved'
+                ? 'success'
                 : value === 'pending'
                   ? 'default'
                   : 'error'
@@ -173,7 +173,6 @@ const isExpanded = (id: number) => expandedRows.value.includes(id);
       </template>
     </div>
 
-    <!-- Create Modal -->
     <ModalBase
       :show="showCreateModal"
       title="New Allocation Request"
@@ -181,7 +180,10 @@ const isExpanded = (id: number) => expandedRows.value.includes(id);
     >
       <AllocationForm
         @cancel="showCreateModal = false"
-        @submit="showCreateModal = false"
+        @submit="
+          showCreateModal = false;
+          fetchRequests();
+        "
       />
     </ModalBase>
   </div>
