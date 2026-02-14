@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import {
   IconPlus,
   IconSearch,
@@ -15,6 +15,9 @@ import { useToast } from "../composables/useToast";
 const { toast } = useToast();
 
 const showCreateModal = ref(false);
+const showEditModal = ref(false);
+const editingId = ref<number | null>(null);
+const isEditing = computed(() => editingId.value !== null);
 const searchQuery = ref("");
 const loading = ref(false);
 
@@ -28,11 +31,35 @@ const columns: Column[] = [
 
 const resources = ref<Resource[]>([]);
 
-const newResource = ref({
+const resourceForm = ref({
   name: "",
   capacity: 0,
-  type: "shared" as const,
+  type: "shared" as "shared" | "exclusive",
+  status: "online",
 });
+
+const openEditModal = (resource: Resource) => {
+  editingId.value = resource.id;
+  resourceForm.value = {
+    name: resource.name,
+    capacity: resource.capacity,
+    type: resource.type as "shared" | "exclusive",
+    status: resource.status,
+  };
+  showEditModal.value = true;
+};
+
+const closeModal = () => {
+  showCreateModal.value = false;
+  showEditModal.value = false;
+  editingId.value = null;
+  resourceForm.value = {
+    name: "",
+    capacity: 0,
+    type: "shared",
+    status: "online",
+  };
+};
 
 const fetchResources = async () => {
   loading.value = true;
@@ -57,11 +84,22 @@ const deleteResource = async (id: number) => {
   }
 };
 
+const submitEdit = async () => {
+  if (!editingId.value) return;
+  try {
+    await api.put(`/rooms/${editingId.value}`, resourceForm.value);
+    closeModal();
+    toast("Resource updated successfully", "success");
+    fetchResources();
+  } catch (err) {
+    toast("Update failed", "error");
+  }
+};
+
 const submitRegistration = async () => {
   try {
-    await api.post("/rooms", newResource.value);
-    showCreateModal.value = false;
-    newResource.value = { name: "", capacity: 0, type: "shared" };
+    await api.post("/rooms", resourceForm.value);
+    closeModal();
     toast("Resource registered successfully", "success");
     fetchResources();
   } catch (err) {
@@ -142,6 +180,7 @@ onMounted(() => {
         <template #actions="{ item }">
           <div class="flex items-center justify-end gap-3">
             <button
+              @click="openEditModal(item)"
               class="text-[10px] font-mono text-muted hover:text-primary transition-colors"
             >
               EDIT
@@ -157,20 +196,23 @@ onMounted(() => {
       </DataTable>
     </div>
 
-    <!-- Create Modal -->
+    <!-- Create/Edit Modal -->
     <ModalBase
-      :show="showCreateModal"
-      title="Register New Resource"
-      @close="showCreateModal = false"
+      :show="showCreateModal || showEditModal"
+      :title="showEditModal ? 'Update Resource' : 'Register New Resource'"
+      @close="closeModal"
     >
-      <form class="space-y-6" @submit.prevent="submitRegistration">
+      <form
+        class="space-y-6"
+        @submit.prevent="isEditing ? submitEdit() : submitRegistration()"
+      >
         <div class="space-y-2">
           <label
             class="text-[10px] font-mono text-muted uppercase tracking-widest"
             >Resource Identifier</label
           >
           <input
-            v-model="newResource.name"
+            v-model="resourceForm.name"
             type="text"
             required
             class="w-full bg-background border border-border rounded-sm p-3 text-sm text-primary focus:outline-none focus:border-accent"
@@ -185,7 +227,7 @@ onMounted(() => {
               >Capacity Units</label
             >
             <input
-              v-model.number="newResource.capacity"
+              v-model.number="resourceForm.capacity"
               type="number"
               required
               min="1"
@@ -199,13 +241,28 @@ onMounted(() => {
               >Access Mode</label
             >
             <select
-              v-model="newResource.type"
+              v-model="resourceForm.type"
               class="w-full bg-background border border-border rounded-sm p-3 text-sm text-primary focus:outline-none focus:border-accent"
             >
               <option value="shared">SHARED</option>
               <option value="exclusive">EXCLUSIVE</option>
             </select>
           </div>
+        </div>
+
+        <div v-if="showEditModal" class="space-y-2">
+          <label
+            class="text-[10px] font-mono text-muted uppercase tracking-widest"
+            >Status</label
+          >
+          <select
+            v-model="resourceForm.status"
+            class="w-full bg-background border border-border rounded-sm p-3 text-sm text-primary focus:outline-none focus:border-accent"
+          >
+            <option value="online">ONLINE</option>
+            <option value="maintenance">MAINTENANCE</option>
+            <option value="offline">OFFLINE</option>
+          </select>
         </div>
 
         <div class="bg-accent/5 border border-accent/20 p-4 rounded-sm">
@@ -221,17 +278,17 @@ onMounted(() => {
       <template #actions>
         <button
           type="button"
-          @click="showCreateModal = false"
+          @click="closeModal"
           class="text-xs font-bold font-mono text-muted hover:text-primary px-4 py-2 transition-colors"
         >
           CANCEL
         </button>
         <button
-          type="submit"
-          @click="submitRegistration"
+          type="button"
+          @click="showEditModal ? submitEdit() : submitRegistration()"
           class="bg-accent hover:bg-accent-hover text-white text-xs font-bold uppercase tracking-widest px-6 py-2 rounded-sm transition-colors"
         >
-          SUBMIT_REGISTRATION
+          {{ showEditModal ? "SAVE_CHANGES" : "SUBMIT_REGISTRATION" }}
         </button>
       </template>
     </ModalBase>

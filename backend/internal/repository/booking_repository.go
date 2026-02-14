@@ -69,10 +69,16 @@ func (r *BookingRepository) CreateWithTransaction(ctx context.Context, req *mode
         return nil, fmt.Errorf("booking conflict detected")
     }
     
-    // Step 2: Insert booking with status = 'approved' (Auto-Approval)
+    // Step 2: Determine status
+    status := "approved"
+    if hasConflict {
+        status = "rejected"
+    }
+    
+    // Step 3: Insert booking
     query := `
         INSERT INTO bookings (room_id, user_id, start_time, end_time, status)
-        VALUES ($1, $2, $3, $4, 'approved')
+        VALUES ($1, $2, $3, $4, $5)
         RETURNING id, room_id, user_id, start_time, end_time, status, created_at
     `
     
@@ -82,6 +88,7 @@ func (r *BookingRepository) CreateWithTransaction(ctx context.Context, req *mode
         req.UserID,
         req.StartTime,
         req.EndTime,
+        status,
     ).Scan(
         &booking.ID,
         &booking.RoomID,
@@ -99,6 +106,10 @@ func (r *BookingRepository) CreateWithTransaction(ctx context.Context, req *mode
     // COMMIT TRANSACTION
     if err = tx.Commit(); err != nil {
         return nil, fmt.Errorf("failed to commit transaction: %w", err)
+    }
+    
+    if hasConflict {
+        return &booking, fmt.Errorf("booking conflict detected") 
     }
     
     return &booking, nil
@@ -328,4 +339,58 @@ func (r *BookingRepository) PreemptBooking(ctx context.Context, bookingID int) e
     }
     
     return tx.Commit()
+}
+
+// DeleteAll clears all bookings from the database
+func (r *BookingRepository) DeleteAll(ctx context.Context) error {
+    ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+    defer cancel()
+
+    _, err := r.db.DB.ExecContext(ctx, "TRUNCATE TABLE bookings RESTART IDENTITY CASCADE")
+    if err != nil {
+        return fmt.Errorf("failed to truncate bookings: %w", err)
+    }
+    return nil
+}
+
+// SystemStats holds dashboard metrics
+type SystemStats struct {
+    TotalBookings  int     `json:"total_bookings"`
+    ActiveBookings int     `json:"active_bookings"`
+    Conflicts      int     `json:"conflicts"`
+    Utilization    float64 `json:"utilization"`
+}
+
+// GetSystemStats aggregates real-time dashboard data
+func (r *BookingRepository) GetSystemStats(ctx context.Context) (*SystemStats, error) {
+    ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+    defer cancel()
+    
+    var stats SystemStats
+    
+    // Total Bookings
+    err := r.db.DB.QueryRowContext(ctx, "SELECT COUNT(*) FROM bookings").Scan(&stats.TotalBookings)
+    if err != nil {
+        return nil, err
+    }
+    
+    // Active (Approved)
+    err = r.db.DB.QueryRowContext(ctx, "SELECT COUNT(*) FROM bookings WHERE status = 'approved'").Scan(&stats.ActiveBookings)
+    if err != nil {
+        return nil, err
+    }
+    
+    // Conflicts (Rejected or marked as conflict)
+    // Note: We use 'rejected' as the status for conflicts based on CreateWithTransaction logic
+    err = r.db.DB.QueryRowContext(ctx, "SELECT COUNT(*) FROM bookings WHERE status = 'rejected'").Scan(&stats.Conflicts)
+    if err != nil {
+        return nil, err
+    }
+    
+    // Utilization approximation
+    if stats.TotalBookings > 0 {
+        stats.Utilization = float64(stats.ActiveBookings) / float64(stats.TotalBookings) * 100
+    }
+    
+    return &stats, nil
 }

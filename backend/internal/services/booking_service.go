@@ -56,3 +56,11 @@ func (s *BookingService) GetMonthlyReport(ctx context.Context) ([]models.Monthly
 func (s *BookingService) ForceAllocate(ctx context.Context, bookingID int) error {
     return s.bookingRepo.PreemptBooking(ctx, bookingID)
 }
+
+func (s *BookingService) ResetAllocations(ctx context.Context) error {
+    return s.bookingRepo.DeleteAll(ctx)
+}
+
+func (s *BookingService) GetSystemStats(ctx context.Context) (*repository.SystemStats, error) {
+    return s.bookingRepo.GetSystemStats(ctx)
+}

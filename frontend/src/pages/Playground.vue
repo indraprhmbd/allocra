@@ -21,6 +21,7 @@ interface TraceLog {
 const loading = ref(false);
 const resources = ref<any[]>([]);
 const batchSize = ref(5);
+const mode = ref<"sequential" | "parallel">("sequential");
 const logs = ref<TraceLog[]>([]);
 
 const fetchResources = async () => {
@@ -47,10 +48,26 @@ const addLog = (
   };
   logs.value.unshift(log); // Newest at top
   if (logs.value.length > 50) logs.value.pop();
+  localStorage.setItem("playground_logs", JSON.stringify(logs.value));
 };
 
 const clearLogs = () => {
   logs.value = [];
+  localStorage.removeItem("playground_logs");
+};
+
+const handleReset = async () => {
+  if (!confirm("WARNING: This will delete ALL allocations. Continue?")) return;
+
+  loading.value = true;
+  try {
+    await api.post("/allocations/reset");
+    addLog("info", "SYSTEM", "Database reset successful");
+  } catch (err: any) {
+    addLog("error", "SYSTEM", "Reset failed", err.message);
+  } finally {
+    loading.value = false;
+  }
 };
 
 const simulateOne = async (index: number) => {
@@ -103,13 +120,24 @@ const handleFloodSimulation = async () => {
   }
 
   loading.value = true;
-  addLog("info", "FLOOD", `Initiating batch of ${batchSize.value} requests...`);
+  addLog(
+    "info",
+    "FLOOD",
+    `Initiating ${mode.value} batch of ${batchSize.value} requests...`,
+  );
 
-  // Execute sequentially to see the trace better
-  for (let i = 0; i < batchSize.value; i++) {
-    await simulateOne(i);
-    // Tiny delay for visual effect
-    await new Promise((r) => setTimeout(r, 100));
+  if (mode.value === "sequential") {
+    // Execute sequentially
+    for (let i = 0; i < batchSize.value; i++) {
+      await simulateOne(i);
+      await new Promise((r) => setTimeout(r, 100));
+    }
+  } else {
+    // Execute in parallel
+    const promises = Array.from({ length: batchSize.value }, (_, i) =>
+      simulateOne(i),
+    );
+    await Promise.all(promises);
   }
 
   addLog("info", "FLOOD", `Batch execution completed.`);
@@ -186,8 +214,36 @@ onMounted(() => {
               <p class="text-[10px] text-muted font-mono leading-relaxed">
                 > TARGET: {{ resources.length }} NODES ACTIVE<br />
                 > STRATEGY: STOCHASTIC_TIME_SLOTS<br />
-                > MODE: SEQUENTIAL_TRACE
+                > MODE: {{ mode.toUpperCase() }}_TRACE
               </p>
+            </div>
+
+            <!-- Mode Toggle -->
+            <div
+              class="flex items-center gap-2 bg-background p-1 border border-border rounded-sm"
+            >
+              <button
+                @click="mode = 'sequential'"
+                class="flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-sm transition-colors"
+                :class="
+                  mode === 'sequential'
+                    ? 'bg-accent text-white shadow-sm'
+                    : 'text-muted hover:text-primary'
+                "
+              >
+                Sequential
+              </button>
+              <button
+                @click="mode = 'parallel'"
+                class="flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-sm transition-colors"
+                :class="
+                  mode === 'parallel'
+                    ? 'bg-accent text-white shadow-sm'
+                    : 'text-muted hover:text-primary'
+                "
+              >
+                Parallel
+              </button>
             </div>
           </div>
 
@@ -213,9 +269,16 @@ onMounted(() => {
           <IconAlertCircle :size="16" class="text-yellow-500 shrink-0 mt-0.5" />
           <p class="text-[10px] text-muted leading-relaxed">
             CAUTION: FLOOD_MODE generates real database entries. High volume may
-            affect timeline visualization performance on weaker clients.
+            affect timeline visualization performance.
           </p>
         </div>
+
+        <button
+          @click="handleReset"
+          class="w-full border border-red-500/30 hover:bg-red-500/10 text-red-500 text-xs font-bold uppercase tracking-widest py-3 rounded-sm transition-colors flex items-center justify-center gap-2"
+        >
+          <IconTrash :size="14" /> PURGE_DATABASE
+        </button>
       </div>
 
       <!-- Live Tracer Panel -->

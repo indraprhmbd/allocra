@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -51,17 +52,31 @@ func (h *RoomHandler) GetRooms(c *fiber.Ctx) error {
 }
 
 func (h *RoomHandler) UpdateRoom(c *fiber.Ctx) error {
-    id, _ := strconv.Atoi(c.Params("id"))
+    id, err := strconv.Atoi(c.Params("id"))
+    if err != nil {
+        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid room ID"})
+    }
+
     var req CreateRoomRequest
     if err := c.BodyParser(&req); err != nil {
-        return c.Status(400).JSON(fiber.Map{"error": "invalid request"})
+        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
     }
     
-    err := h.roomService.UpdateRoom(c.Context(), id, req.Name, req.Capacity, req.Type, req.Status)
-    if err != nil {
-        return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+    // Validate
+    if req.Name == "" || req.Capacity <= 0 {
+        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "name and capacity (>0) are required"})
     }
-    return c.SendStatus(200)
+    
+    err = h.roomService.UpdateRoom(c.Context(), id, req.Name, req.Capacity, req.Type, req.Status)
+    if err != nil {
+        if err.Error() == fmt.Sprintf("room not found with id: %d", id) {
+             return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
+        }
+        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+    }
+    
+    // Return updated room or success message
+    return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "room updated successfully"})
 }
 
 func (h *RoomHandler) DeleteRoom(c *fiber.Ctx) error {

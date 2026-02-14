@@ -1,23 +1,39 @@
 package handlers
 
 import (
-	"math/rand"
+	"github.com/indraprhmbd/allocra/internal/services" // Assuming services package path
 
 	"github.com/gofiber/fiber/v2"
 )
 
-type SystemHandler struct{}
+type SystemHandler struct {
+    bookingService *services.BookingService
+}
 
-func NewSystemHandler() *SystemHandler {
-	return &SystemHandler{}
+func NewSystemHandler(bookingService *services.BookingService) *SystemHandler {
+    return &SystemHandler{bookingService: bookingService}
 }
 
 func (h *SystemHandler) GetStats(c *fiber.Ctx) error {
-	// Simulate dynamic system metrics
-	return c.JSON(fiber.Map{
-		"cpu_usage":    10 + rand.Intn(15),
-		"memory_usage": 40 + rand.Intn(20),
-		"io_wait":      1 + rand.Intn(5),
-		"status":       "HEALTHY",
-	})
+    stats, err := h.bookingService.GetSystemStats(c.Context())
+    if err != nil {
+        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+    }
+    
+    return c.JSON(fiber.Map{
+        "status": "nominal",
+        "uptime": "99.9%", // Static for now, or calculate from start time
+        "version": "1.0.0",
+        "total_bookings": stats.TotalBookings,
+        "active_bookings": stats.ActiveBookings,
+        "conflicts": stats.Conflicts,
+        "utilization": stats.Utilization,
+    })
+}
+
+func (h *SystemHandler) ResetAllocations(c *fiber.Ctx) error {
+    if err := h.bookingService.ResetAllocations(c.Context()); err != nil {
+        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+    }
+    return c.JSON(fiber.Map{"message": "All allocations have been reset"})
 }

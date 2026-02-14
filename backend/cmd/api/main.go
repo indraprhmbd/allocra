@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -17,6 +18,16 @@ import (
 )
 
 func main() {
+    // Set default timezone to WIB (Asia/Jakarta)
+    loc, err := time.LoadLocation("Asia/Jakarta")
+    if err != nil {
+        log.Printf("Warning: failed to load Asia/Jakarta timezone: %v", err)
+        // Fallback or just continue (system might handle it via TZ env)
+    } else {
+        time.Local = loc
+        log.Println("Timezone configured to Asia/Jakarta (WIB)")
+    }
+
     // Load environment variables
     if err := godotenv.Load(); err != nil {
         log.Println("No .env file found")
@@ -56,7 +67,7 @@ func main() {
     
     roomHandler := handlers.NewRoomHandler(roomService)
     bookingHandler := handlers.NewBookingHandler(bookingService)
-    systemHandler := handlers.NewSystemHandler()
+    systemHandler := handlers.NewSystemHandler(bookingService)
     
     // Initialize Fiber
     app := fiber.New()
@@ -84,6 +95,7 @@ func main() {
     
     // System routes
     api.Get("/system/stats", systemHandler.GetStats)
+    api.Post("/allocations/reset", systemHandler.ResetAllocations)
     
     // Start server
     port := os.Getenv("PORT")

@@ -72,8 +72,21 @@ func (r *RoomRepository) Update(ctx context.Context, id int, name string, capaci
     defer cancel()
     
     query := `UPDATE rooms SET name = $1, capacity = $2, type = $3, status = $4 WHERE id = $5`
-    _, err := r.db.DB.ExecContext(ctx, query, name, capacity, roomType, status, id)
-    return err
+    result, err := r.db.DB.ExecContext(ctx, query, name, capacity, roomType, status, id)
+    if err != nil {
+        return err
+    }
+    
+    rows, err := result.RowsAffected()
+    if err != nil {
+        return err
+    }
+    
+    if rows == 0 {
+        return fmt.Errorf("room not found with id: %d", id)
+    }
+    
+    return nil
 }
 
 func (r *RoomRepository) Delete(ctx context.Context, id int) error {
