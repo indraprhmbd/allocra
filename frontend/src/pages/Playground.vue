@@ -146,6 +146,17 @@ const handleFloodSimulation = async () => {
 
 onMounted(() => {
   fetchResources();
+
+  // Load logs BEFORE adding initialization log to prevent overwrite
+  const savedLogs = localStorage.getItem("playground_logs");
+  if (savedLogs) {
+    try {
+      logs.value = JSON.parse(savedLogs);
+    } catch (e) {
+      console.error("Failed to parse logs", e);
+    }
+  }
+
   addLog("info", "SYSTEM", "Playground engine initialized. REPL ready.");
 });
 </script>

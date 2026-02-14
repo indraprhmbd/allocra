@@ -59,15 +59,19 @@ func (r *BookingRepository) CreateWithTransaction(ctx context.Context, req *mode
         return nil, fmt.Errorf("failed to begin transaction: %w", err)
     }
     defer tx.Rollback() // Rollback if not committed
+
+    // LOCK ROOM to prevent race conditions (double bookings)
+    // This forces sequential processing for the same room
+    if _, err := tx.ExecContext(ctx, "SELECT id FROM rooms WHERE id = $1 FOR UPDATE", req.RoomID); err != nil {
+        return nil, fmt.Errorf("failed to lock room: %w", err)
+    }
     
     // Step 1: Check for conflicts
     hasConflict, err := r.CheckConflict(ctx, tx, req.RoomID, req.StartTime, req.EndTime)
     if err != nil {
         return nil, err
     }
-    if hasConflict {
-        return nil, fmt.Errorf("booking conflict detected")
-    }
+    // Note: We DO NOT return early for conflict. We save it as 'rejected'.
     
     // Step 2: Determine status
     status := "approved"
@@ -380,16 +384,26 @@ func (r *BookingRepository) GetSystemStats(ctx context.Context) (*SystemStats, e
         return nil, err
     }
     
-    // Conflicts (Rejected or marked as conflict)
-    // Note: We use 'rejected' as the status for conflicts based on CreateWithTransaction logic
+    // Conflicts (Rejected)
     err = r.db.DB.QueryRowContext(ctx, "SELECT COUNT(*) FROM bookings WHERE status = 'rejected'").Scan(&stats.Conflicts)
     if err != nil {
         return nil, err
     }
     
-    // Utilization approximation
-    if stats.TotalBookings > 0 {
-        stats.Utilization = float64(stats.ActiveBookings) / float64(stats.TotalBookings) * 100
+    // Get Total Rooms for Occupancy Rate
+    var totalRooms int
+    err = r.db.DB.QueryRowContext(ctx, "SELECT COUNT(*) FROM rooms").Scan(&totalRooms)
+    if err != nil {
+        totalRooms = 1 // Prevent division by zero if error or empty
+    }
+    
+    // Utilization = Occupancy Rate (Active Bookings / Total Rooms * 100)
+    // Note: This can exceed 100% if rooms have multiple concurrent bookings (though our logic prevents it for 'approved')
+    if totalRooms > 0 {
+        stats.Utilization = float64(stats.ActiveBookings) / float64(totalRooms) * 100
+        if stats.Utilization > 100 {
+            stats.Utilization = 100
+        }
     }
     
     return &stats, nil
