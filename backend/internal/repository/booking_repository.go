@@ -69,10 +69,10 @@ func (r *BookingRepository) CreateWithTransaction(ctx context.Context, req *mode
         return nil, fmt.Errorf("booking conflict detected")
     }
     
-    // Step 2: Insert booking with status = 'pending'
+    // Step 2: Insert booking with status = 'approved' (Auto-Approval)
     query := `
         INSERT INTO bookings (room_id, user_id, start_time, end_time, status)
-        VALUES ($1, $2, $3, $4, 'pending')
+        VALUES ($1, $2, $3, $4, 'approved')
         RETURNING id, room_id, user_id, start_time, end_time, status, created_at
     `
     
