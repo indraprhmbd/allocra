@@ -51,13 +51,16 @@ const fetchDashboardData = async () => {
       if (stats.value[3])
         stats.value[3].value = (systemRes.data.conflicts || 0).toString();
 
+      const cpu = systemRes.data.cpu_usage || 0;
+      const mem = systemRes.data.memory_usage || 0;
       const util = systemRes.data.utilization || 0;
+
       systemStats.value = {
         ...systemStats.value,
-        cpu_usage: Math.round(util),
-        memory_usage: Math.round(util * 0.8 + 10), // Simulated relation
-        io_wait: Math.round(util * 0.3),
-        status: util > 90 ? "OVERLOAD" : util > 0 ? "ONLINE" : "IDLE",
+        cpu_usage: Math.round(cpu),
+        memory_usage: Math.round(mem),
+        io_wait: Math.round(util * 0.2), // Contextual heuristic
+        status: cpu > 90 ? "OVERLOAD" : cpu > 0.1 ? "ONLINE" : "IDLE",
       };
     }
 

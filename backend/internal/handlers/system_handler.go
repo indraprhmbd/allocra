@@ -28,6 +28,8 @@ func (h *SystemHandler) GetStats(c *fiber.Ctx) error {
         "active_bookings": stats.ActiveBookings,
         "conflicts": stats.Conflicts,
         "utilization": stats.Utilization,
+        "cpu_usage": stats.CPUUsage,
+        "memory_usage": stats.MemoryUsage,
     })
 }
 
