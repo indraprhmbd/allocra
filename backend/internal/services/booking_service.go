@@ -17,9 +17,7 @@ func NewBookingService(bookingRepo *repository.BookingRepository) *BookingServic
     return &BookingService{bookingRepo: bookingRepo}
 }
 
-// CreateBooking validates and creates a new booking
 func (s *BookingService) CreateBooking(ctx context.Context, req *models.CreateBookingRequest) (*models.Booking, error) {
-    // Business logic validation
     if req.StartTime.After(req.EndTime) || req.StartTime.Equal(req.EndTime) {
         return nil, fmt.Errorf("invalid time range: start must be before end")
     }
@@ -29,7 +27,6 @@ func (s *BookingService) CreateBooking(ctx context.Context, req *models.CreateBo
         return nil, fmt.Errorf("cannot book in the past (beyond 2min grace period)")
     }
     
-    // Delegate to repository (transaction handled there)
     return s.bookingRepo.CreateWithTransaction(ctx, req)
 }
 

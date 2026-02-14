@@ -43,26 +43,14 @@ const fetchDashboardData = async () => {
       api.get("/system/stats"),
     ]);
 
-    // Map backend stats to UI
     if (systemRes.data) {
-      // Update top cards
       if (stats.value[0])
         stats.value[0].value = (systemRes.data.total_bookings || 0).toString();
-      if (stats.value[1])
-        stats.value[1].value = (systemRes.data.active_bookings || 0).toString();
-
-      // Calculate pending (total - active - rejected) or fetch if available.
-      // For now, let's stick to frontend filter for specific statuses not in SystemStats or add pending to SystemStats later.
-      // Actually, let's keep the filter for properties NOT in SystemStats to be safe, or mix/match.
-      // SystemStats has Total, Active, Conflicts.
-
-      // Let's use the robust backend numbers where possible
       if (stats.value[1])
         stats.value[1].value = (systemRes.data.active_bookings || 0).toString();
       if (stats.value[3])
         stats.value[3].value = (systemRes.data.conflicts || 0).toString();
 
-      // Simulate Engine Load based on Utilization
       const util = systemRes.data.utilization || 0;
       systemStats.value = {
         ...systemStats.value,
@@ -73,14 +61,12 @@ const fetchDashboardData = async () => {
       };
     }
 
-    // Fallback/Supplemental from bookings list for things like "Total Resources" (rooms count)
     if (stats.value[0]) stats.value[0].value = roomsRes.data.length.toString();
     if (stats.value[2])
       stats.value[2].value = bookingsRes.data
         .filter((b: any) => b.status === "pending")
         .length.toString();
 
-    // Map latest events from real bookings
     latestEvents.value = bookingsRes.data
       .sort(
         (a: any, b: any) =>

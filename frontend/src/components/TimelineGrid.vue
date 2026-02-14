@@ -21,7 +21,6 @@ const fetchData = async () => {
           const start = new Date(b.start_time);
           const end = new Date(b.end_time);
 
-          // Map to 24h grid (simplified for now)
           const startHour = start.getHours() + start.getMinutes() / 60;
           const endHour = end.getHours() + end.getMinutes() / 60;
 

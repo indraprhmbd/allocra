@@ -27,7 +27,6 @@ const logs = ref<TraceLog[]>([]);
 const fetchResources = async () => {
   try {
     const res = await api.get("/rooms");
-    // Filter out offline resources from simulation
     resources.value = res.data.filter((r: any) => r.status === "online");
   } catch (err) {
     addLog("error", "SYSTEM", "Failed to fetch resource nodes");
@@ -47,7 +46,7 @@ const addLog = (
     message: `[${tag}] ${message}`,
     details,
   };
-  logs.value.unshift(log); // Newest at top
+  logs.value.unshift(log);
   if (logs.value.length > 50) logs.value.pop();
   localStorage.setItem("playground_logs", JSON.stringify(logs.value));
 };
@@ -75,7 +74,6 @@ const simulateOne = async (index: number) => {
   const randomRoom =
     resources.value[Math.floor(Math.random() * resources.value.length)];
 
-  // Random staggered start times in the next 24 hours
   const start = new Date();
   const staggeredMinutes = 5 + index * 15 + Math.floor(Math.random() * 60);
   start.setMinutes(start.getMinutes() + staggeredMinutes);
@@ -128,13 +126,11 @@ const handleFloodSimulation = async () => {
   );
 
   if (mode.value === "sequential") {
-    // Execute sequentially
     for (let i = 0; i < batchSize.value; i++) {
       await simulateOne(i);
       await new Promise((r) => setTimeout(r, 100));
     }
   } else {
-    // Execute in parallel
     const promises = Array.from({ length: batchSize.value }, (_, i) =>
       simulateOne(i),
     );
@@ -148,7 +144,6 @@ const handleFloodSimulation = async () => {
 onMounted(() => {
   fetchResources();
 
-  // Load logs BEFORE adding initialization log to prevent overwrite
   const savedLogs = localStorage.getItem("playground_logs");
   if (savedLogs) {
     try {
@@ -348,9 +343,9 @@ onMounted(() => {
                       'text-red-500 font-bold': log.type === 'error',
                     }"
                   >
-                    <span v-if="log.type === 'success'" class="mr-1">✓</span>
-                    <span v-if="log.type === 'conflict'" class="mr-1">⚠</span>
-                    <span v-if="log.type === 'error'" class="mr-1">❌</span>
+                    <span v-if="log.type === 'success'" class="mr-1">[+]</span>
+                    <span v-if="log.type === 'conflict'" class="mr-1">[!]</span>
+                    <span v-if="log.type === 'error'" class="mr-1">[X]</span>
                     {{ log.message }}
                   </div>
                   <div

@@ -62,7 +62,6 @@ func (h *RoomHandler) UpdateRoom(c *fiber.Ctx) error {
         return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
     }
     
-    // Validate
     if req.Name == "" || req.Capacity <= 0 {
         return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "name and capacity (>0) are required"})
     }
@@ -75,7 +74,6 @@ func (h *RoomHandler) UpdateRoom(c *fiber.Ctx) error {
         return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
     }
     
-    // Return updated room or success message
     return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "room updated successfully"})
 }
 

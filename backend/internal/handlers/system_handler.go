@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"github.com/indraprhmbd/allocra/internal/services" // Assuming services package path
+	"github.com/indraprhmbd/allocra/internal/services"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -22,7 +22,7 @@ func (h *SystemHandler) GetStats(c *fiber.Ctx) error {
     
     return c.JSON(fiber.Map{
         "status": "nominal",
-        "uptime": "99.9%", // Static for now, or calculate from start time
+        "uptime": "99.9%",
         "version": "1.0.0",
         "total_bookings": stats.TotalBookings,
         "active_bookings": stats.ActiveBookings,

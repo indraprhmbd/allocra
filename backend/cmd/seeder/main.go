@@ -30,7 +30,7 @@ type Booking struct {
 }
 
 func main() {
-	fmt.Println("🚀 Starting Allocra Engine Seeder...")
+	fmt.Println("[*] Starting Allocra Engine Seeder...")
 
 	// 1. Fetch existing rooms or create new ones
 	nodes := []string{"NODE-AX-01", "NODE-AX-02", "NODE-AX-03", "NODE-AX-04", "NODE-AX-05"}
@@ -49,7 +49,7 @@ func main() {
 	for _, name := range nodes {
 		if r, ok := roomMap[name]; ok {
 			createdRooms = append(createdRooms, r)
-			fmt.Printf("♻️ Reusing %s (ID: %d)\n", name, r.ID)
+			fmt.Printf("[~] Reusing %s (ID: %d)\n", name, r.ID)
 			continue
 		}
 
@@ -61,17 +61,17 @@ func main() {
 		}
 		res, err := post("/rooms", room)
 		if err != nil {
-			fmt.Printf("❌ Failed to create room %s: %v\n", name, err)
+			fmt.Printf("[X] Failed to create room %s: %v\n", name, err)
 			continue
 		}
 		var r Room
 		json.Unmarshal(res, &r)
 		createdRooms = append(createdRooms, r)
-		fmt.Printf("✅ Created %s (ID: %d)\n", name, r.ID)
+		fmt.Printf("[+] Created %s (ID: %d)\n", name, r.ID)
 	}
 
 	if len(createdRooms) == 0 {
-		fmt.Println("⚠️ No rooms created. Make sure backend is running on :8080")
+		fmt.Println("[!] No rooms created. Make sure backend is running on :8080")
 		return
 	}
 
@@ -93,14 +93,14 @@ func main() {
 
 		_, err := post("/bookings", booking)
 		if err != nil {
-			fmt.Printf("⚠️ Skip valid booking for %s: %v\n", room.Name, err)
+			fmt.Printf("[!] Skip valid booking for %s: %v\n", room.Name, err)
 		} else {
-			fmt.Printf("✅ Allocated %s for %v\n", room.Name, duration)
+			fmt.Printf("[+] Allocated %s for %v\n", room.Name, duration)
 		}
 	}
 
 	// 3. Create Intentioned Conflicts
-	fmt.Println("\n🔥 Triggering deterministic conflicts...")
+	fmt.Println("\n[*] Triggering deterministic conflicts...")
 	if len(createdRooms) > 0 {
 		targetRoom := createdRooms[0]
 		collisionStart := baseTime.Add(24 * time.Hour)
@@ -122,7 +122,7 @@ func main() {
 		fmt.Printf("🔒 Approving baseline (ID: %d)...\n", baseline.ID)
 		_, err := patch(fmt.Sprintf("/bookings/%d/approve", baseline.ID), nil)
 		if err != nil {
-			fmt.Printf("❌ Failed to approve baseline: %v\n", err)
+			fmt.Printf("[X] Failed to approve baseline: %v\n", err)
 		}
 
 		// Now attempt collisions
@@ -146,9 +146,9 @@ func main() {
 			}
 			_, err := post("/bookings", payload)
 			if err != nil {
-				fmt.Printf("✅ Engine correctly REJECTED: %v\n", err)
+				fmt.Printf("[+] Engine correctly REJECTED: %v\n", err)
 			} else {
-				fmt.Printf("❌ Engine failed to detect conflict!\n")
+				fmt.Printf("[X] Engine failed to detect conflict!\n")
 			}
 		}
 	}

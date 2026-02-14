@@ -10,7 +10,7 @@ const { toast } = useToast();
 
 const form = ref({
   room_id: "",
-  user_id: 1, // Default user for experimental engine
+  user_id: 1,
   start_time: "",
   end_time: "",
 });
@@ -33,7 +33,6 @@ const handleSubmit = async () => {
   }
 
   try {
-    // Convert to ISO string for backend
     const payload = {
       ...form.value,
       room_id: parseInt(form.value.room_id),

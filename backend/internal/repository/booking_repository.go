@@ -53,33 +53,26 @@ func (r *BookingRepository) CreateWithTransaction(ctx context.Context, req *mode
     ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
     defer cancel()
     
-    // BEGIN TRANSACTION
     tx, err := r.db.DB.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelReadCommitted})
     if err != nil {
         return nil, fmt.Errorf("failed to begin transaction: %w", err)
     }
-    defer tx.Rollback() // Rollback if not committed
+    defer tx.Rollback()
 
-    // LOCK ROOM to prevent race conditions (double bookings)
-    // This forces sequential processing for the same room
+    // Lock room to prevent race conditions (double bookings)
     if _, err := tx.ExecContext(ctx, "SELECT id FROM rooms WHERE id = $1 FOR UPDATE", req.RoomID); err != nil {
         return nil, fmt.Errorf("failed to lock room: %w", err)
     }
     
-    // Step 1: Check for conflicts
     hasConflict, err := r.CheckConflict(ctx, tx, req.RoomID, req.StartTime, req.EndTime)
     if err != nil {
         return nil, err
     }
-    // Note: We DO NOT return early for conflict. We save it as 'rejected'.
     
-    // Step 2: Determine status
     status := "approved"
     if hasConflict {
         status = "rejected"
     }
-    
-    // Step 3: Insert booking
     query := `
         INSERT INTO bookings (room_id, user_id, start_time, end_time, status)
         VALUES ($1, $2, $3, $4, $5)
@@ -107,7 +100,6 @@ func (r *BookingRepository) CreateWithTransaction(ctx context.Context, req *mode
         return nil, fmt.Errorf("failed to insert booking: %w", err)
     }
     
-    // COMMIT TRANSACTION
     if err = tx.Commit(); err != nil {
         return nil, fmt.Errorf("failed to commit transaction: %w", err)
     }
@@ -130,7 +122,6 @@ func (r *BookingRepository) ApproveBooking(ctx context.Context, bookingID int) e
     }
     defer tx.Rollback()
     
-    // Fetch booking details
     var booking models.Booking
     query := `SELECT room_id, start_time, end_time, status FROM bookings WHERE id = $1 FOR UPDATE`
     err = tx.QueryRowContext(ctx, query, bookingID).Scan(
@@ -156,7 +147,6 @@ func (r *BookingRepository) ApproveBooking(ctx context.Context, bookingID int) e
         return fmt.Errorf("conflict detected, cannot approve")
     }
     
-    // Update status
     updateQuery := `UPDATE bookings SET status = 'approved' WHERE id = $1`
     _, err = tx.ExecContext(ctx, updateQuery, bookingID)
     if err != nil {
@@ -313,7 +303,6 @@ func (r *BookingRepository) PreemptBooking(ctx context.Context, bookingID int) e
     }
     defer tx.Rollback()
     
-    // 1. Fetch the target booking
     var b models.Booking
     err = tx.QueryRowContext(ctx, "SELECT room_id, start_time, end_time FROM bookings WHERE id = $1 FOR UPDATE", bookingID).Scan(
         &b.RoomID, &b.StartTime, &b.EndTime,
@@ -322,7 +311,6 @@ func (r *BookingRepository) PreemptBooking(ctx context.Context, bookingID int) e
         return err
     }
     
-    // 2. Reject all overlapping 'approved' bookings for this room
     rejectQuery := `
         UPDATE bookings 
         SET status = 'rejected' 
@@ -336,7 +324,6 @@ func (r *BookingRepository) PreemptBooking(ctx context.Context, bookingID int) e
         return err
     }
     
-    // 3. Approve the target booking
     _, err = tx.ExecContext(ctx, "UPDATE bookings SET status = 'approved' WHERE id = $1", bookingID)
     if err != nil {
         return err
@@ -372,33 +359,26 @@ func (r *BookingRepository) GetSystemStats(ctx context.Context) (*SystemStats, e
     
     var stats SystemStats
     
-    // Total Bookings
     err := r.db.DB.QueryRowContext(ctx, "SELECT COUNT(*) FROM bookings").Scan(&stats.TotalBookings)
     if err != nil {
         return nil, err
     }
     
-    // Active (Approved)
     err = r.db.DB.QueryRowContext(ctx, "SELECT COUNT(*) FROM bookings WHERE status = 'approved'").Scan(&stats.ActiveBookings)
     if err != nil {
         return nil, err
     }
     
-    // Conflicts (Rejected)
     err = r.db.DB.QueryRowContext(ctx, "SELECT COUNT(*) FROM bookings WHERE status = 'rejected'").Scan(&stats.Conflicts)
     if err != nil {
         return nil, err
     }
     
-    // Get Total Rooms for Occupancy Rate
     var totalRooms int
     err = r.db.DB.QueryRowContext(ctx, "SELECT COUNT(*) FROM rooms").Scan(&totalRooms)
     if err != nil {
-        totalRooms = 1 // Prevent division by zero if error or empty
+        totalRooms = 1
     }
-    
-    // Utilization = Occupancy Rate (Active Bookings / Total Rooms * 100)
-    // Note: This can exceed 100% if rooms have multiple concurrent bookings (though our logic prevents it for 'approved')
     if totalRooms > 0 {
         stats.Utilization = float64(stats.ActiveBookings) / float64(totalRooms) * 100
         if stats.Utilization > 100 {

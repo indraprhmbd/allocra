@@ -21,7 +21,6 @@ func (s *RoomService) CreateRoom(ctx context.Context, name string, capacity int,
         return nil, fmt.Errorf("capacity must be positive")
     }
     
-    // Default values if empty
     if roomType == "" { roomType = "shared" }
     if status == "" { status = "online" }
     

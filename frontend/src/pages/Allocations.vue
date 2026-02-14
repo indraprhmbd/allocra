@@ -30,7 +30,6 @@ const columns: Column[] = [
 const requests = ref<any[]>([]);
 
 const forceAllocate = async (booking: any) => {
-  // Assuming 'Booking' type is 'any' for now
   try {
     await api.patch(`/bookings/${booking.id}/force`);
     toast(`Node ${booking.room_id} preempted & reallocated`, "success");
