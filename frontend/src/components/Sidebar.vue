@@ -4,6 +4,7 @@ import {
   IconDatabase,
   IconArrowsExchange,
   IconTimeline,
+  IconFlask,
 } from "@tabler/icons-vue";
 
 const menuItems = [
@@ -11,6 +12,7 @@ const menuItems = [
   { name: "Resources", path: "/resources", icon: IconDatabase },
   { name: "Allocations", path: "/allocations", icon: IconArrowsExchange },
   { name: "Timeline", path: "/timeline", icon: IconTimeline },
+  { name: "Playground", path: "/playground", icon: IconFlask },
 ];
 </script>
 

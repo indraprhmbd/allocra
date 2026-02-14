@@ -28,6 +28,11 @@ const router = createRouter({
           name: "Timeline",
           component: () => import("../pages/Timeline.vue"),
         },
+        {
+          path: "playground",
+          name: "Playground",
+          component: () => import("../pages/Playground.vue"),
+        },
       ],
     },
   ],
