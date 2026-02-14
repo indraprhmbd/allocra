@@ -165,7 +165,7 @@ const latestEvents = ref<any[]>([]);
           <template #status="{ value }">
             <span
               :class="[
-                value === 'SUCCESS' || value === 'OK'
+                value === 'SUCCESS' || value === 'OK' || value === 'APPROVED'
                   ? 'text-green-500'
                   : value === 'PENDING'
                     ? 'text-accent'

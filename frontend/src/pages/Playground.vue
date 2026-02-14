@@ -27,7 +27,8 @@ const logs = ref<TraceLog[]>([]);
 const fetchResources = async () => {
   try {
     const res = await api.get("/rooms");
-    resources.value = res.data;
+    // Filter out offline resources from simulation
+    resources.value = res.data.filter((r: any) => r.status === "online");
   } catch (err) {
     addLog("error", "SYSTEM", "Failed to fetch resource nodes");
   }
