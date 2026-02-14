@@ -26,7 +26,7 @@ const columns: Column[] = [
   { key: "capacity", label: "Capacity", class: "text-right w-32" },
   { key: "type", label: "Access Type", class: "w-40" },
   { key: "status", label: "Status", class: "w-40" },
-  { key: "actions", label: "", class: "w-20 text-right" },
+  { key: "actions", label: "Action", class: "w-20 text-right" },
 ];
 
 const resources = ref<Resource[]>([]);

@@ -12,19 +12,17 @@ import DataTable, { type Column } from "../components/DataTable.vue";
 import api from "../services/api";
 
 const stats = ref([
-  { label: "Total Resources", value: "0", icon: IconDatabase, trend: 0 },
+  { label: "Total Resources", value: "0", icon: IconDatabase },
   {
     label: "Active Allocations",
     value: "0",
     icon: IconArrowsExchange,
-    trend: 0,
   },
-  { label: "Pending Requests", value: "0", icon: IconClock, trend: 0 },
+  { label: "Pending Requests", value: "0", icon: IconClock },
   {
     label: "Detected Conflicts",
     value: "0",
     icon: IconAlertTriangle,
-    trend: 0,
   },
 ]);
 

@@ -1,6 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import api from "../services/api";
+
+const props = defineProps<{
+  date: string;
+}>();
 
 const hours = Array.from({ length: 24 }, (_, i) => `${i}:00`);
 const resources = ref<any[]>([]);
@@ -16,7 +20,11 @@ const fetchData = async () => {
 
     resources.value = roomsRes.data.map((room: any) => {
       const roomBookings = bookingsRes.data
-        .filter((b: any) => b.room_id === room.id)
+        .filter((b: any) => {
+          // Filter by room and selected date
+          const bDate = new Date(b.start_time).toISOString().split("T")[0];
+          return b.room_id === room.id && bDate === props.date;
+        })
         .map((b: any) => {
           const start = new Date(b.start_time);
           const end = new Date(b.end_time);
@@ -49,6 +57,13 @@ const fetchData = async () => {
     loading.value = false;
   }
 };
+
+watch(
+  () => props.date,
+  () => {
+    fetchData();
+  },
+);
 
 onMounted(() => {
   fetchData();

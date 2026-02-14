@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import { ref } from "vue";
 import TimelineGrid from "../components/TimelineGrid.vue";
 import { IconFilter, IconCalendarEvent } from "@tabler/icons-vue";
+
+const selectedDate = ref<string>(new Date().toISOString().split("T")[0] || "");
 </script>
 
 <template>
@@ -17,10 +20,14 @@ import { IconFilter, IconCalendarEvent } from "@tabler/icons-vue";
 
       <div class="flex items-center gap-3 self-start md:self-auto">
         <div
-          class="bg-surface border border-border rounded-sm px-3 py-1.5 flex items-center gap-2 text-xs font-mono text-muted"
+          class="bg-surface border border-border rounded-sm px-3 py-1.5 flex items-center gap-2 text-xs font-mono text-muted relative"
         >
           <IconCalendarEvent :size="14" />
-          2026-02-13
+          <input
+            v-model="selectedDate"
+            type="date"
+            class="bg-transparent border-none outline-none text-muted focus:text-primary transition-colors cursor-pointer"
+          />
         </div>
         <button
           class="border border-border p-2 rounded-sm text-muted hover:text-primary transition-colors"
@@ -35,7 +42,7 @@ import { IconFilter, IconCalendarEvent } from "@tabler/icons-vue";
     >
       <div class="flex-1 overflow-x-auto overflow-y-hidden">
         <div class="min-w-[800px] h-full">
-          <TimelineGrid />
+          <TimelineGrid :date="selectedDate" />
         </div>
       </div>
     </div>

@@ -96,7 +96,12 @@ defineProps<{
           v-for="col in columns"
           :key="col.key"
           class="flex justify-between items-start gap-4"
-          :class="{ hidden: !col.label && !item[col.key] }"
+          :class="{
+            hidden:
+              !col.label &&
+              item[col.key] === undefined &&
+              col.key !== 'actions',
+          }"
         >
           <span
             class="text-[10px] font-mono font-bold text-muted uppercase tracking-widest shrink-0"
