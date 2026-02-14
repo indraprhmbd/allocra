@@ -11,6 +11,7 @@ import StatusBadge from "../components/StatusBadge.vue";
 import ModalBase from "../components/ModalBase.vue";
 import api from "../services/api";
 import { useToast } from "../composables/useToast";
+import AllocationForm from "../components/AllocationForm.vue";
 
 const { toast } = useToast();
 
