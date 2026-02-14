@@ -24,8 +24,9 @@ func (s *BookingService) CreateBooking(ctx context.Context, req *models.CreateBo
         return nil, fmt.Errorf("invalid time range: start must be before end")
     }
     
-    if req.StartTime.Before(time.Now()) {
-        return nil, fmt.Errorf("cannot book in the past")
+    // Allow a 2-minute grace period for "immediate" bookings to account for clock drift
+    if req.StartTime.Before(time.Now().Add(-2 * time.Minute)) {
+        return nil, fmt.Errorf("cannot book in the past (beyond 2min grace period)")
     }
     
     // Delegate to repository (transaction handled there)

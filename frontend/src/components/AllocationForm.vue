@@ -3,7 +3,10 @@ import { ref, onMounted } from "vue";
 import { IconCalendar, IconClock, IconSearch } from "@tabler/icons-vue";
 import api from "../services/api";
 
+import { useToast } from "../composables/useToast";
+
 const emit = defineEmits(["submit", "cancel"]);
+const { toast } = useToast();
 
 const form = ref({
   room_id: "",
@@ -24,6 +27,11 @@ const fetchResources = async () => {
 };
 
 const handleSubmit = async () => {
+  if (!form.value.room_id) {
+    toast("Please select a resource", "error");
+    return;
+  }
+
   try {
     // Convert to ISO string for backend
     const payload = {
@@ -33,9 +41,11 @@ const handleSubmit = async () => {
       end_time: new Date(form.value.end_time).toISOString(),
     };
     await api.post("/bookings", payload);
+    toast("Allocation request executed", "success");
     emit("submit");
   } catch (err: any) {
-    alert(err.response?.data?.error || "Allocation failed");
+    const errorMsg = err.response?.data?.error || "Allocation failed";
+    toast(errorMsg, "error");
   }
 };
 
