@@ -104,75 +104,55 @@ const latestEvents = ref<any[]>([]);
 </script>
 
 <template>
-  <div class="space-y-8">
-    <div class="flex items-end justify-between">
-      <div>
-        <h2 class="text-2xl font-bold text-primary tracking-tight">
-          System Dashboard
-        </h2>
-        <p class="text-muted text-sm mt-1">
-          Real-time resource utilization and allocation metrics.
-        </p>
-      </div>
-      <div
-        class="flex items-center gap-2 text-xs font-mono text-muted uppercase tracking-widest border-b border-border pb-1"
-      >
-        <IconActivity :size="14" class="text-accent animate-pulse" />
-        LIVE_STREAM_CONNECTED: {{ new Date().toLocaleTimeString() }}
+  <div class="space-y-6">
+    <div class="flex items-center justify-between">
+      <h1 class="text-2xl font-bold tracking-tight text-white">Dashboard</h1>
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+        <span class="text-xs font-mono text-accent">LIVE_STREAM</span>
       </div>
     </div>
 
     <!-- Stats Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <StatCard v-for="stat in stats" :key="stat.label" v-bind="stat" />
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      <StatCard
+        v-for="stat in stats"
+        :key="stat.label"
+        v-bind="stat"
+        class="bg-surface border border-border p-4"
+      />
     </div>
 
-    <!-- Main Content Area -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <div
-        class="lg:col-span-2 bg-surface border border-border rounded-sm overflow-hidden flex flex-col"
-      >
-        <div
-          class="p-5 border-b border-border flex items-center justify-between"
-        >
-          <h3
-            class="text-sm font-bold uppercase tracking-widest text-primary flex items-center gap-2"
-          >
-            <IconArrowsExchange :size="16" class="text-accent" />
-            Latest Allocation Events
-          </h3>
-          <button
-            class="text-[10px] font-mono text-muted hover:text-accent transition-colors"
-          >
-            VIEW_ALL_LOGS
-          </button>
-        </div>
-        <DataTable :columns="columns" :items="latestEvents">
-          <template #status="{ value }">
-            <span
-              :class="[
-                value === 'SUCCESS' || value === 'OK' || value === 'APPROVED'
-                  ? 'text-green-500'
-                  : value === 'PENDING'
-                    ? 'text-accent'
-                    : 'text-red-500',
-              ]"
-              class="text-[10px] font-mono px-1.5 py-0.5 border border-current/20 bg-current/5 rounded-sm"
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Activity Feed -->
+      <div class="lg:col-span-2 space-y-4">
+        <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+          <IconActivity :size="20" class="text-accent" />
+          Latest Allocation Events
+        </h2>
+        <div class="bg-surface border border-border rounded-sm overflow-hidden">
+          <div class="overflow-x-auto">
+            <DataTable
+              :columns="columns"
+              :items="latestEvents"
+              :loading="false"
             >
-              {{ value }}
-            </span>
-          </template>
-        </DataTable>
+              <template #status="{ value }">
+                <StatusBadge :status="value" />
+              </template>
+            </DataTable>
+          </div>
+        </div>
       </div>
 
-      <div class="space-y-8">
+      <!-- System Health -->
+      <div class="space-y-4 hidden lg:block">
+        <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+          <IconCpu :size="20" class="text-accent" />
+          Engine Load
+        </h2>
+
         <div class="bg-surface border border-border rounded-sm p-5">
-          <h3
-            class="text-sm font-bold uppercase tracking-widest text-primary mb-4 flex items-center gap-2"
-          >
-            <IconActivity :size="16" class="text-accent" />
-            Engine Load
-          </h3>
           <div class="space-y-4">
             <div>
               <div

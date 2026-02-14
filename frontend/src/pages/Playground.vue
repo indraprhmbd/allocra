@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import {
-  IconFlask,
   IconPlayerPlay,
   IconDice,
   IconTerminal2,
@@ -158,14 +157,16 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="max-w-6xl mx-auto py-8 px-4 space-y-8">
+  <div
+    class="max-w-6xl mx-auto h-[calc(100vh-9rem)] md:h-auto flex flex-col py-2 md:py-8 px-0 md:px-4 space-y-4 md:space-y-8"
+  >
     <!-- Header -->
-    <div class="flex items-start justify-between">
+    <div
+      class="flex-none flex flex-col md:flex-row md:items-start justify-between gap-4 px-2 md:px-0"
+    >
       <div class="space-y-1">
-        <h2
-          class="text-3xl font-bold text-primary tracking-tighter flex items-center gap-3"
-        >
-          <IconFlask class="text-accent" /> ALLOCRA_PLAYGROUND
+        <h2 class="text-2xl font-bold text-primary tracking-tight">
+          ALLOCRA_PLAYGROUND
         </h2>
         <p
           class="text-muted text-sm font-mono uppercase tracking-widest bg-accent/5 px-2 py-0.5 rounded-sm inline-block"
@@ -173,7 +174,7 @@ onMounted(() => {
           Deterministic_Stress_Testing_Unit_v2
         </p>
       </div>
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-4 self-end md:self-auto">
         <div class="text-right">
           <p class="text-[10px] font-mono text-muted uppercase">
             Engine_Status
@@ -188,10 +189,16 @@ onMounted(() => {
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div
+      class="flex-1 flex flex-col lg:grid lg:grid-cols-12 gap-4 md:gap-8 min-h-0"
+    >
       <!-- Controls Panel -->
-      <div class="lg:col-span-4 space-y-6">
-        <div class="bg-surface border border-border p-6 rounded-sm space-y-6">
+      <div
+        class="flex-none lg:col-span-4 space-y-6 overflow-y-auto md:overflow-visible max-h-[30vh] md:max-h-none px-2 md:px-0"
+      >
+        <div
+          class="bg-surface border border-border p-4 md:p-6 rounded-sm space-y-6"
+        >
           <h3
             class="text-xs font-bold text-primary uppercase tracking-widest flex items-center gap-2"
           >
@@ -289,7 +296,7 @@ onMounted(() => {
       </div>
 
       <!-- Live Tracer Panel -->
-      <div class="lg:col-span-8 flex flex-col h-[600px]">
+      <div class="flex-1 lg:col-span-8 flex flex-col min-h-0 h-full">
         <div
           class="bg-background border border-border rounded-sm flex flex-col h-full shadow-inner"
         >

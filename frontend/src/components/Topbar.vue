@@ -4,7 +4,7 @@ import { IconTerminal2, IconWifi } from "@tabler/icons-vue";
 
 <template>
   <header
-    class="h-16 border-b border-border bg-surface flex items-center px-8 fixed top-0 right-0 left-64 z-10"
+    class="h-16 border-b border-border bg-surface hidden md:flex items-center px-8 fixed top-0 right-0 left-64 z-10"
   >
     <div class="flex items-center gap-4 text-xs font-mono text-muted">
       <div

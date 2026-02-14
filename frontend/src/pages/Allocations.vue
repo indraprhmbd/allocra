@@ -79,8 +79,8 @@ const isExpanded = (id: number) => expandedRows.value.includes(id);
 </script>
 
 <template>
-  <div class="space-y-8">
-    <div class="flex items-end justify-between">
+  <div class="space-y-6">
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
       <div>
         <h2 class="text-2xl font-bold text-primary tracking-tight">
           Allocation Requests
@@ -92,7 +92,7 @@ const isExpanded = (id: number) => expandedRows.value.includes(id);
       </div>
       <button
         @click="showCreateModal = true"
-        class="bg-accent hover:bg-accent-hover text-white text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-sm transition-colors flex items-center gap-2"
+        class="bg-accent hover:bg-accent-hover text-white text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-sm transition-colors flex items-center justify-center gap-2 w-full md:w-auto"
       >
         <IconPlus :size="16" />
         NEW_ALLOCATION
@@ -101,35 +101,37 @@ const isExpanded = (id: number) => expandedRows.value.includes(id);
 
     <!-- Table -->
     <div class="bg-surface border border-border rounded-sm overflow-hidden">
-      <DataTable :columns="columns" :items="requests">
-        <template #id="{ item }">
-          <span class="text-accent font-mono">{{ item.displayId }}</span>
-        </template>
+      <div class="overflow-x-auto">
+        <DataTable :columns="columns" :items="requests">
+          <template #id="{ item }">
+            <span class="text-accent font-mono">{{ item.displayId }}</span>
+          </template>
 
-        <template #status="{ value }">
-          <StatusBadge
-            :status="value"
-            :variant="
-              value === 'approved'
-                ? 'success'
-                : value === 'pending'
-                  ? 'default'
-                  : 'error'
-            "
-          />
-        </template>
+          <template #status="{ value }">
+            <StatusBadge
+              :status="value"
+              :variant="
+                value === 'approved'
+                  ? 'success'
+                  : value === 'pending'
+                    ? 'default'
+                    : 'error'
+              "
+            />
+          </template>
 
-        <template #expand="{ item }">
-          <button
-            v-if="item.conflict"
-            @click="toggleExpand(item.id)"
-            class="text-muted hover:text-primary p-1"
-          >
-            <IconChevronUp v-if="isExpanded(item.id)" :size="16" />
-            <IconChevronDown v-else :size="16" />
-          </button>
-        </template>
-      </DataTable>
+          <template #expand="{ item }">
+            <button
+              v-if="item.conflict"
+              @click="toggleExpand(item.id)"
+              class="text-muted hover:text-primary p-1"
+            >
+              <IconChevronUp v-if="isExpanded(item.id)" :size="16" />
+              <IconChevronDown v-else :size="16" />
+            </button>
+          </template>
+        </DataTable>
+      </div>
 
       <!-- Custom Expandable Section Logic outside of DataTable shared logic if needed, 
            or via a custom template in DataTable that spans full width. 
@@ -137,7 +139,7 @@ const isExpanded = (id: number) => expandedRows.value.includes(id);
       <template v-for="item in requests" :key="'conflict-' + item.id">
         <div
           v-if="isExpanded(item.id)"
-          class="bg-red-500/5 border-b border-border p-6 flex gap-6 items-start animate-fade"
+          class="bg-red-500/5 border-b border-border p-4 md:p-6 flex flex-col md:flex-row gap-4 md:gap-6 items-start animate-fade"
         >
           <IconAlertCircle :size="24" class="text-red-500 shrink-0" />
           <div class="space-y-3">

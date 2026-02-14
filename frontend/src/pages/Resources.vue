@@ -113,8 +113,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="space-y-8">
-    <div class="flex items-end justify-between">
+  <div class="space-y-6">
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
       <div>
         <h2 class="text-2xl font-bold text-primary tracking-tight">
           Resource Management
@@ -125,7 +125,7 @@ onMounted(() => {
       </div>
       <button
         @click="showCreateModal = true"
-        class="bg-accent hover:bg-accent-hover text-white text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-sm transition-colors flex items-center gap-2"
+        class="bg-accent hover:bg-accent-hover text-white text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-sm transition-colors flex items-center justify-center gap-2 w-full md:w-auto"
       >
         <IconPlus :size="16" />
         REGISTER_RESOURCE
@@ -133,8 +133,8 @@ onMounted(() => {
     </div>
 
     <!-- Toolbar -->
-    <div class="flex items-center gap-4">
-      <div class="relative flex-1 max-w-md group">
+    <div class="flex flex-col md:flex-row items-stretch md:items-center gap-4">
+      <div class="relative flex-1 group">
         <IconSearch
           :size="16"
           class="absolute left-3 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-accent transition-colors"
@@ -147,7 +147,7 @@ onMounted(() => {
         />
       </div>
       <button
-        class="border border-border p-2 rounded-sm text-muted hover:text-primary hover:border-muted transition-colors"
+        class="border border-border p-2 rounded-sm text-muted hover:text-primary hover:border-muted transition-colors flex justify-center"
       >
         <IconAdjustmentsHorizontal :size="18" />
       </button>
@@ -155,45 +155,47 @@ onMounted(() => {
 
     <!-- Table Container -->
     <div class="bg-surface border border-border rounded-sm overflow-hidden">
-      <DataTable :columns="columns" :items="resources" :loading="loading">
-        <template #type="{ value }">
-          <span
-            class="text-xs uppercase tracking-wide px-2 py-0.5 border border-border bg-background/50 rounded-full font-mono"
-          >
-            {{ value }}
-          </span>
-        </template>
-
-        <template #status="{ value }">
-          <StatusBadge
-            :status="value"
-            :variant="
-              value === 'online'
-                ? 'success'
-                : value === 'maintenance'
-                  ? 'warning'
-                  : 'error'
-            "
-          />
-        </template>
-
-        <template #actions="{ item }">
-          <div class="flex items-center justify-end gap-3">
-            <button
-              @click="openEditModal(item)"
-              class="text-[10px] font-mono text-muted hover:text-primary transition-colors"
+      <div class="overflow-x-auto">
+        <DataTable :columns="columns" :items="resources" :loading="loading">
+          <template #type="{ value }">
+            <span
+              class="text-xs uppercase tracking-wide px-2 py-0.5 border border-border bg-background/50 rounded-full font-mono"
             >
-              EDIT
-            </button>
-            <button
-              @click="deleteResource(item.id)"
-              class="text-[10px] font-mono text-red-400/70 hover:text-red-400 transition-colors"
-            >
-              DELETE
-            </button>
-          </div>
-        </template>
-      </DataTable>
+              {{ value }}
+            </span>
+          </template>
+
+          <template #status="{ value }">
+            <StatusBadge
+              :status="value"
+              :variant="
+                value === 'online'
+                  ? 'success'
+                  : value === 'maintenance'
+                    ? 'warning'
+                    : 'error'
+              "
+            />
+          </template>
+
+          <template #actions="{ item }">
+            <div class="flex items-center justify-end gap-3">
+              <button
+                @click="openEditModal(item)"
+                class="text-[10px] font-mono text-muted hover:text-primary transition-colors"
+              >
+                EDIT
+              </button>
+              <button
+                @click="deleteResource(item.id)"
+                class="text-[10px] font-mono text-red-400/70 hover:text-red-400 transition-colors"
+              >
+                DELETE
+              </button>
+            </div>
+          </template>
+        </DataTable>
+      </div>
     </div>
 
     <!-- Create/Edit Modal -->
