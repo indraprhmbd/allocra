@@ -1,13 +1,28 @@
 # Allocra
 
-Resource allocation engine focusing on transactional safety and real-time observability. Built with a Go backend and a Vue 3 frontend.
+Resource allocation engine focusing on transactional safety and real-time observability. Built with a Go backend and a Vue 3 frontend, designed for deterministic stress testing and high-concurrency environments.
+
+_Mesin alokasi sumber daya yang berfokus pada keamanan transaksi dan observabilitas real-time. Dibangun dengan backend Go dan frontend Vue 3, dirancang untuk pengujian stres deterministik dan lingkungan dengan konkurensi tinggi._
+
+## Core Features / Fitur Utama
+
+- **Transactional Integrity:** Row-level locking (`FOR UPDATE`) eliminates overbooking and race conditions.
+  _(Integritas Transaksi: Penguncian tingkat baris (`FOR UPDATE`) menghilangkan risiko overbooking dan race conditions.)_
+- **Conflict Persistence:** All allocation failures (conflicts) are logged as `REJECTED` state for auditability.
+  _(Persistensi Konflik: Semua kegagalan alokasi (konflik) dicatat sebagai status `REJECTED` untuk kebutuhan audit.)_
+- **Real-time Engine Load:** Live dashboard tracking occupancy rates, engine stress, and allocation velocity.
+  _(Beban Mesin Real-time: Dashboard langsung untuk melacak tingkat hunian, stres mesin, dan kecepatan alokasi.)_
+- **Deterministic Playground:** Integrated stress-testing unit to simulate sequential or parallel request storms.
+  _(Playground Deterministik: Unit pengujian stres terintegrasi untuk mensimulasikan badai permintaan sekuensial atau paralel.)_
+- **Timezone Standardization:** System-wide alignment to `Asia/Jakarta (WIB)` for precise temporal grids.
+  _(Standarisasi Zona Waktu: Penyelarasan seluruh sistem ke `Asia/Jakarta (WIB)` untuk kisi temporal yang presisi.)_
 
 ## Project Structure
 
-- backend: Go backend (Fiber, Postgres)
-- frontend: Vue 3 frontend (Vite, Tailwind)
-- backend/migrations: SQL migration files
-- docker-compose.yml: Orchestration for local development
+- `backend`: Go backend (Fiber, Postgres)
+- `frontend`: Vue 3 frontend (Vite, TailwindCSS)
+- `backend/migrations`: SQL schema and migration files
+- `docker-compose.yml`: Full-stack orchestration (DB, API, Frontend, Nginx)
 
 ## Getting Started
 
@@ -23,49 +38,40 @@ Running the Application:
    docker-compose up -d --build
    ```
 
-   This command starts the PostgreSQL database, the Go API, and the Vue frontend.
-
 2. Access the application:
-   - Frontend: http://localhost:5173
+   - Dashboard: http://localhost:5173
+   - Playground (Stress Test): http://localhost:5173/playground
    - API: http://localhost:8080
 
 ## API Endpoints
 
-### Resources
+### Resources (Nodes)
 
-- GET /api/rooms - List all registered resources
-- POST /api/rooms - Register a new resource
-- PUT /api/rooms/:id - Update resource metadata
-- DELETE /api/rooms/:id - Decommission a resource
+- `GET /api/rooms` - List all registered resource nodes
+- `POST /api/rooms` - Register a new resource
+- `PUT /api/rooms/:id` - Update resource metadata and status (`online`/`offline`)
+- `DELETE /api/rooms/:id` - Decommission a resource
 
-### Allocations (Bookings)
+### Allocations (Engine Logic)
 
-- GET /api/bookings/all - Fetch all allocation requests
-- POST /api/bookings - Submit a new allocation (automatic conflict detection)
-- PATCH /api/bookings/:id/approve - Approve a pending request
-- PATCH /api/bookings/:id/reject - Deny a request
-- PATCH /api/bookings/:id/force - Preempt existing allocations (Force Allocate)
+- `GET /api/bookings/all` - Fetch all allocation history and conflicts
+- `POST /api/bookings` - Submit new allocation (atomic conflict detection)
+- `PATCH /api/bookings/:id/force` - Preempt existing allocations (Engine Override)
+- `POST /api/allocations/reset` - Purge all allocations (Playground reset)
 
-### System & Metrics
+### Observability
 
-- GET /api/system/stats - Fetch real-time engine load and system health
-- GET /api/reports/monthly-usage - Retrieve monthly utilization data
+- `GET /api/system/stats` - Fetch real-time engine load (CPU, Memory simulation)
+- `GET /api/reports/monthly-usage` - Retrieve monthly utilization metrics
 
-## Architecture and Tech Stack
+## Tech Stack
 
-Backend:
+- **Backend:** Go 1.21, Fiber v2, SQL-first repository layer.
+- **Frontend:** Vue 3 (Composition API), Vite, Tabler Icons, Vanilla CSS Design System.
+- **Database:** PostgreSQL 16 with B-Tree indexing on temporal ranges.
 
-- Language: Go 1.21
-- Framework: Fiber v2
-- Database: PostgreSQL 16
-- Core Logic: 3-layer architecture (Handler, Service, Repository) with strict transactional isolation
+## Deterministic Safety / Keamanan Deterministik
 
-Frontend:
+The engine utilizes `READ COMMITTED` isolation levels combined with explicit row-level locking on resource nodes during the allocation window check. This ensures that even under parallel request storms (simulated in the Playground), the system maintains 100% allocation accuracy.
 
-- Framework: Vue 3 (Composition API)
-- Build Tool: Vite
-- Styling: Tailwind CSS
-- Icons: Tabler Icons
-
-Transactional Safety:
-The system uses Read Committed isolation and row-level locking (FOR UPDATE) to prevent overbooking and race conditions during high-concurrency resource allocation.
+_Mesin ini menggunakan tingkat isolasi `READ COMMITTED` yang dikombinasikan dengan penguncian tingkat baris (row-level locking) eksplisit pada node sumber daya selama pemeriksaan jendela alokasi. Hal ini memastikan bahwa bahkan di bawah badai permintaan paralel (yang disimulasikan di Playground), sistem tetap mempertahankan akurasi alokasi 100%._
