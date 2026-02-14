@@ -1,57 +1,71 @@
 # Allocra
 
-Experimental resource allocation engine focusing on SQL correctness and transactional safety.
+Resource allocation engine focusing on transactional safety and real-time observability. Built with a Go backend and a Vue 3 frontend.
 
 ## Project Structure
 
-- `backend/`: Go backend (Fiber, Postgres)
-- `backend/migrations/`: SQL migration files
-- `docker-compose.yml`: Local development setup
+- backend: Go backend (Fiber, Postgres)
+- frontend: Vue 3 frontend (Vite, Tailwind)
+- backend/migrations: SQL migration files
+- docker-compose.yml: Orchestration for local development
 
 ## Getting Started
 
-### Prerequisites
+Prerequisites:
 
 - Docker and Docker Compose
 
-### Running the Application
+Running the Application:
 
-1. **Start the services:**
+1. Start the services:
 
    ```bash
-   docker-compose up --build
+   docker-compose up -d --build
    ```
 
-   This will start the PostgreSQL database and the Go backend.
+   This command starts the PostgreSQL database, the Go API, and the Vue frontend.
 
-2. **Access the API:**
-   The API will be available at `http://localhost:8080`.
-
-### Database & Migrations
-
-The database is automatically initialized with the schema and seed data defined in `backend/migrations` when the container starts for the first time.
+2. Access the application:
+   - Frontend: http://localhost:5173
+   - API: http://localhost:8080
 
 ## API Endpoints
 
-### Rooms
+### Resources
 
-- `POST /api/rooms` - Create a new room
-- `GET /api/rooms` - List all rooms
+- GET /api/rooms - List all registered resources
+- POST /api/rooms - Register a new resource
+- PUT /api/rooms/:id - Update resource metadata
+- DELETE /api/rooms/:id - Decommission a resource
 
-### Bookings
+### Allocations (Bookings)
 
-- `POST /api/bookings` - Create a booking (checks for conflicts)
-- `GET /api/bookings?room_id=<id>` - List bookings for a room
-- `PATCH /api/bookings/:id/approve` - Approve a booking (re-checks conflicts)
-- `PATCH /api/bookings/:id/reject` - Reject a booking
+- GET /api/bookings/all - Fetch all allocation requests
+- POST /api/bookings - Submit a new allocation (automatic conflict detection)
+- PATCH /api/bookings/:id/approve - Approve a pending request
+- PATCH /api/bookings/:id/reject - Deny a request
+- PATCH /api/bookings/:id/force - Preempt existing allocations (Force Allocate)
 
-### Reports
+### System & Metrics
 
-- `GET /api/reports/monthly-usage` - Get monthly usage statistics
+- GET /api/system/stats - Fetch real-time engine load and system health
+- GET /api/reports/monthly-usage - Retrieve monthly utilization data
 
-## Architecture
+## Architecture and Tech Stack
 
-- **Language:** Go 1.21
-- **Framework:** Fiber v2
-- **Database:** PostgreSQL 15
-- **Concurrency:** Optimistic concurrency control via database transactions and isolation levels.
+Backend:
+
+- Language: Go 1.21
+- Framework: Fiber v2
+- Database: PostgreSQL 16
+- Core Logic: 3-layer architecture (Handler, Service, Repository) with strict transactional isolation
+
+Frontend:
+
+- Framework: Vue 3 (Composition API)
+- Build Tool: Vite
+- Styling: Tailwind CSS
+- Icons: Tabler Icons
+
+Transactional Safety:
+The system uses Read Committed isolation and row-level locking (FOR UPDATE) to prevent overbooking and race conditions during high-concurrency resource allocation.
